@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+
+        <title>
+        </title>
+        <style type='text/css'>
+            @font-face {
+    			    font-family: "absender";
+                src: url('absender.ttf');
+            }
+
+            body{
+                height: 100%;
+                width:  100%;
+  					 min-height:1080px;
+					 min-width:1920px;	
+                margin: 0;
+                overflow: hidden;	
+            }
+			   div{
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -khtml-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                -icab-user-select: none;
+                -o-user-select: none;
+                user-select: none;			   
+			   }
+        	   .desktopbigclass{
+					 float: left;
+					 height:1080px;
+					 width:1920px;		
+                background: #000;
+                overflow: hidden;
+				}
+			   .pongpointone{
+					 position:absolute;
+					 top:20px;
+					 left:300px;
+					 height:400px;
+					 width:400px;		
+                text-align: center;
+                font-size: 200px;
+                color: #fff;
+                font-family: "absender";
+			   }
+			   .pongpointtwo{
+					 position:absolute;
+					 top:20px;
+					 right:300px;
+					 height:400px;
+					 width:400px;		
+                text-align: center;
+                font-size: 200px;
+                color: #fff;
+                font-family:"absender";
+			   }
+            .pongplayerone{
+					 position:absolute;
+					 top:420px;
+					 left:30px;
+					 height:240px;
+					 width:30px;		
+                background: #fff;
+				}
+			   .pongplayertwo{
+					 position:absolute;
+					 top:420px;
+					 right:30px;
+					 height:240px;
+					 width:30px;		
+                background: #fff;
+			   }
+			   .pongball{
+					 position:absolute;
+					 top:525px;
+					 left:855px;
+					 height:30px;
+					 width:30px;		
+                background: #fff;
+			   }
+		      .pongwinertext{
+                position:absolute;
+					 top:300px;
+					 left:200px;
+					 height:300px;
+					 width:1520px;
+					 text-align:center;
+					 font-family:"absender";
+					 font-size:250px;
+					 color:#fff;
+		      }
+		      .pongstartgame{
+                position:absolute;
+					 top:600px;
+					 left:200px;
+					 height:400px;
+					 width:1520px;
+					 text-align:center;
+					 font-family:"absender";
+					 font-size:80px;
+					 color:#fff;
+		      }
+        </style>
+    </head>
+    <body style="overflow: hidden">
+        <div  class="desktopbigclass" id="desktopbigclass">
+            <div  class="pongpointone" id="pongpointone">0</div>
+            <div  class="pongpointtwo" id="pongpointtwo">0</div>
+            <div  class="pongwinertext" id="pongwinertext"></div>
+            <div  class="pongstartgame" id="pongstartgame">Press Enter to start the game<br>f - fullscreen</div>
+            <div  class="pongplayerone" id="pongplayerone"></div>
+            <div  class="pongplayertwo" id="pongplayertwo"></div>
+            <div  class="pongball" id="pongball"></div>
+        </div>
+        <script type='text/javascript'>
+            document.body.addEventListener('touchstart', function(e){ e.preventDefault(); });
+            if(navigator.userAgent.match(/Android/i)){
+                window.scrollTo(0,1);
+            }            
+            if(navigator.userAgent.match(/iPhone/i)){
+                window.scrollTo(0,1);
+            } 
+
+
+// pong
+            var pong={};
+            pong.elem={
+                racket:{
+                    one:document.getElementById("pongplayerone"),
+                    two:document.getElementById("pongplayertwo")
+                },
+                ball:document.getElementById("pongball"),
+                point:{
+                    one:document.getElementById("pongpointone"),
+                    two:document.getElementById("pongpointtwo")
+                },
+                winertext:document.getElementById("pongwinertext"),
+                startgame:document.getElementById("pongstartgame"),
+            }
+            pong.vars={
+            	    playerone : {
+            	        posy:420,
+            	        point:0,
+            	    },
+            	    playertwo:{
+            	        posy:420,
+            	        point:0,
+            	    },
+                ball : {
+                    posx:855,
+                    posy:525,
+                    vectorx:0,
+                    vectory:0,
+                    angle:0,
+                    speed:0,
+                    minspeed:30,
+                    maxspeed:30,
+                    moveint:"none",
+                    upstamp:0,
+                    downstamp:0,
+                },
+                setup :{
+                    playerspeed : 15,
+                },
+                pauseb:0,
+                pauset:0,
+                gamestatus:0,
+                point:{
+                    
+                }
+            };
+            pong.fun = {
+                playerone:{
+                    newpos:function (change) {
+	                     pong.elem.racket.one.style.top = change.toString()+"px";
+	                     pong.vars.playerone.posy = change;
+                    },
+                },
+                playertwo:{
+                    newpos:function (change) {
+                     	pong.elem.racket.two.style.top = change.toString()+"px";
+                     	pong.vars.playertwo.posy = change;
+                    }
+                },
+                move:{
+                    racket:{
+                        up:function (pos,speed) {
+	                         if (pos-speed > 0){
+                                pos = pos-speed;
+                            } else {
+                                pos = 0;
+                            }
+                            return pos;
+                        },
+                        down:function (pos, speed) {
+                            if (pos+speed < 840){
+                                pos = pos+speed;
+                            } else {
+                                pos = 840;
+                            }
+                            return pos;
+                        }
+                    }                
+                },
+                ball:{
+                    start:function () {
+                        pong.vars.ball.vectorx = parseInt(Math.random()*(1-0)+1);
+                        pong.vars.ball.vectory = parseInt(Math.random()*(1-0)+1);
+                        pong.vars.ball.speed = parseInt(Math.floor(Math.random()*(pong.vars.ball.maxspeed-pong.vars.ball.minspeed))+pong.vars.ball.minspeed);
+                        pong.vars.ball.angle = parseInt(Math.random()*(9-0));
+                        pong.vars.ball.posx=855;
+                        pong.vars.ball.posy=525;
+                        if ( pong.vars.ball.moveint !== "none" ) {
+                            clearInterval(pong.vars.ball.moveint);
+                            pong.vars.ball.moveint = "none";
+                        }
+                        pong.vars.ball.moveint = setInterval("pong.fun.ball.move()", 40);	
+                    },
+                    vectorchange:function (vect) {
+	                     if (vect === 1) {
+                            return 2;
+                        } else {
+                            return 1;
+                        } 
+                    },
+                    move:function() {
+                        var nepos = {
+                           py:0,
+                           px:0,
+                           stamp : new Date().getTime(),
+	                    }
+                        if (pong.vars.ball.vectorx === 1 ){
+                            nepos.px = pong.vars.ball.posx+parseInt(((10-(pong.vars.ball.angle/1.5))/10)*pong.vars.ball.speed); 
+	                    } else {
+                            nepos.px = pong.vars.ball.posx-parseInt(((10-(pong.vars.ball.angle/1.5))/10)*pong.vars.ball.speed);	             
+	                    }
+	                    if (pong.vars.ball.vectory === 1 ){
+                            nepos.py = pong.vars.ball.posy+parseInt((pong.vars.ball.angle/10)*pong.vars.ball.speed);
+	                    } else {
+                           nepos.py = pong.vars.ball.posy-parseInt((pong.vars.ball.angle/10)*pong.vars.ball.speed);	             
+	                    }
+	                    if ( 0 > nepos.py ) {
+	                        pong.vars.ball.vectory=pong.fun.ball.vectorchange(pong.vars.ball.vectory);
+	                        nepos.py = nepos.py*-1;
+	                    }
+	                    if ( nepos.py > 1050) {
+	                        pong.vars.ball.vectory=pong.fun.ball.vectorchange(pong.vars.ball.vectory);
+	                        nepos.py = 1050-(nepos.py-1050);
+	                    }
+	                    if ((60 > nepos.px) && (nepos.px > 45-pong.vars.ball.speed)){
+                            if ((nepos.py > pong.vars.playerone.posy-25 ) && (pong.vars.playerone.posy+265>nepos.py) ) {
+                                pong.vars.ball.vectorx=pong.fun.ball.vectorchange(pong.vars.ball.vectorx);
+	                            nepos.px = ((nepos.px-60)*-1)+60;
+	                            pong.fun.ball.anglechange(pong.vars.playerone.posy, nepos.py);
+	                        }
+	                    }
+	                    if ((nepos.px > 1830) && ( 1845+pong.vars.ball.speed>nepos.px)) {
+	                        if (( nepos.py > pong.vars.playertwo.posy-25 ) && (pong.vars.playertwo.posy+265>nepos.py) ) {
+	                            pong.vars.ball.vectorx=pong.fun.ball.vectorchange(pong.vars.ball.vectorx);
+	                            nepos.px = 1830-(nepos.px-1830);
+	                            pong.fun.ball.anglechange(pong.vars.playertwo.posy, nepos.py);
+	                        }
+	                    }
+	                    if (nepos.px > 1920) {
+	                        pong.vars.playerone.point+=1;
+	                        pong.fun.ball.start();
+	                        pong.fun.pointwrite();	                 
+	                    }else if (0 > nepos.px) {
+	                        pong.vars.playertwo.point+=1;
+	                        pong.fun.ball.start();
+	                        pong.fun.pointwrite();
+	                    }else{
+                            pong.vars.ball.posx = nepos.px ; 	         
+                            pong.vars.ball.posy = nepos.py ; 
+                            pong.elem.ball.style.top = nepos.py.toString()+"px";
+                            pong.elem.ball.style.left = nepos.px.toString()+"px";
+                        }
+                        if (pong.vars.ball.vectorx === 1) {
+                            if ( pong.vars.ball.posy > pong.vars.playertwo.posy+45 ){
+                                if (nepos.stamp-500 >pong.vars.ball.upstamp){ 
+                                    pong.fun.playertwo.newpos(pong.fun.move.racket.down(pong.vars.playertwo.posy, pong.vars.setup.playerspeed));
+                                    pong.vars.ball.downstamp = nepos.stamp;
+                                }
+                            } else if ( pong.vars.playertwo.posy+195 > pong.vars.ball.posy  ){
+                                if (nepos.stamp-500 >pong.vars.ball.downstamp){
+                                    pong.fun.playertwo.newpos(pong.fun.move.racket.up(pong.vars.playertwo.posy, pong.vars.setup.playerspeed));   
+                                    pong.vars.ball.upstamp = nepos.stamp; 
+                                }
+                            }
+                        }
+                    },
+                    anglechange:function(utoy, bally) {
+	                    var posika = bally - utoy-25;                
+                        if (posika > 295/2){
+	                        posika =  parseInt(parseInt((posika-142)/14)/2);
+                            if (pong.vars.ball.vectory === 1) {
+	                            pong.vars.ball.angle=pong.vars.ball.angle+posika;
+	                            if(pong.vars.ball.angle > 8){
+                                   pong.vars.ball.angle = 9;	                    
+	                            }
+	                        }else{
+	                            pong.vars.ball.angle=pong.vars.ball.angle-posika;
+	                            if(pong.vars.ball.angle > 1){
+                                   pong.vars.ball.angle = pong.vars.ball.angle*-1;
+                                   pong.vars.ball.vectory=pong.fun.ball.vectorchange(pong.vars.ball.vectory);
+	                            }
+	                         }
+	                     }else{
+	                         posika = parseInt((10-parseInt(posika/14))/2); 	                 
+	                         if(pong.vars.ball.vectory === 2){
+	                            pong.vars.ball.angle=pong.vars.ball.angle+posika;
+	                            if(pong.vars.ball.angle  > 8){
+                                   pong.vars.ball.angle = 9;	                    
+	                            }
+	                         }else{
+	                            pong.vars.ball.angle=pong.vars.ball.angle-posika;
+	                            if(pong.vars.ball.angle > 1){
+                                   pong.vars.ball.angle = pong.vars.ball.angle*-1;
+                                   pong.vars.ball.vectory=pong.fun.ball.vectorchange(pong.vars.ball.vectory);
+	                            }
+	                        } 
+	                    }
+                    }
+                },
+                pausex:function() {
+                    var newstamp = parseInt((new Date().getTime()/1000));
+                    if (newstamp>pong.vars.pauset+3) {
+	                    if(pong.vars.pauseb === 0){
+	                        clearInterval(pong.vars.ball.moveint);
+	                        pong.vars.pauseb = 1;
+                        } else{
+                            pong.vars.ball.moveint = setInterval("pong.fun.ball.move()", 40);
+                            pong.vars.pauseb = 0;	             
+	                    }
+                    }
+                    pong.vars.pauset = newstamp;
+                },
+                pointwrite:function(){
+                     pong.elem.point.one.innerHTML = pong.vars.playerone.point.toString();
+                     pong.elem.point.two.innerHTML = pong.vars.playertwo.point.toString();
+                     if (pong.vars.playerone.point+pong.vars.playertwo.point > 2) {
+                         pong.fun.end();
+                     }
+                },
+                pushstart:function() {
+                    if(pong.vars.gamestatus === 0) {
+                        pong.elem.winertext.innerHTML="";
+                        pong.elem.startgame.style.visibility="hidden";
+                        pong.vars.gamestatus = 1;
+                        pong.fun.ball.start();
+                        pong.vars.playerone.point=0;
+                        pong.vars.playertwo.point=0;
+                        pong.fun.pointwrite();
+                    }
+                },
+                end:function(){
+                    if(pong.vars.gamestatus === 1) {
+            	 	        if(pong.vars.playerone.point > pong.vars.playertwo.point){
+                            pong.elem.winertext.innerHTML = "YOU WIN";
+                        }else{
+                            pong.elem.winertext.innerHTML = "Computer Win";
+                        }
+                        pong.elem.startgame.style.visibility="visible";
+                        pong.vars.gamestatus = 0;
+                        if(pong.vars.ball.moveint !== "none" ) {
+                            clearInterval(pong.vars.ball.moveint);
+                            pong.vars.ball.moveint = "none";
+                        }
+                    }
+                }
+            }          
+             pong.vars.ball.vectory=pong.fun.ball.vectorchange(pong.vars.ball.vectory);
+
+
+var oson={};
+
+//fit
+
+oson.fit = {
+    vars:{
+        version : "0.001",
+        interval : "",
+        marginleft : 0,
+        margintop : 0,
+        currentw : 0,
+        currenth : 0,
+        aranyw : 0,
+        aranyh : 0,
+        resultw : 1920,
+        resulth : 1080,
+        oldw : 0,
+        oldh : 0,
+        scale : 1,
+        rescale : 0,
+        fitedid : "desktopbigclass",
+     },
+     scale:function(){
+         oson.fit.vars.aranyw=oson.fit.vars.currentw/oson.fit.vars.resultw;
+         oson.fit.vars.aranyh=oson.fit.vars.currenth/oson.fit.vars.resulth;
+         if(oson.fit.vars.aranyw > oson.fit.vars.aranyh){
+              if(1>oson.fit.vars.aranyh){
+                  var testmargoa = oson.fit.vars.currentw-(oson.fit.vars.aranyh*oson.fit.vars.resultw);
+                    	   oson.fit.vars.marginleft = (testmargoa-2)/2;
+                    	   var testmargotext = testmargoa.toString()+"px";
+                        var fitscalebale = "scale("+oson.fit.vars.aranyh.toString()+")";
+                        oson.fit.vars.margintop = 0;
+                        oson.fit.vars.scale = oson.fit.vars.aranyh;
+                    }
+                }else{
+                    if(1>oson.fit.vars.aranyw){
+                    	   var testmargoa = oson.fit.vars.currenth-(oson.fit.vars.aranyw*oson.fit.vars.resulth);
+                    	   oson.fit.vars.margintop = (testmargoa-2)/2;
+                        var fitscalebale = "scale("+oson.fit.vars.aranyw.toString()+")";
+                        var testmargoleft = "0";
+                        oson.fit.vars.marginleft = 0;
+                        oson.fit.vars.scale = oson.fit.vars.aranyw;
+                    }
+                }
+                var el = document.getElementById(oson.fit.vars.fitedid);
+                el.style.webkitTransform=fitscalebale;
+                el.style.webkitTransformOrigin="0 0";
+                el.style.transform=fitscalebale;
+                el.style.transformOrigin="0 0";
+                el.style.marginLeft=oson.fit.vars.marginleft+"px";
+                el.style.marginTop=oson.fit.vars.margintop+"px";
+    },
+    interval:function(){
+                if (document.body && document.body.offsetWidth) {
+                    oson.fit.vars.currentw = document.body.offsetWidth;
+                    oson.fit.vars.currenth = document.body.offsetHeight;
+                }
+                if (document.compatMode=='CSS1Compat' &&
+                    document.documentElement &&
+                    document.documentElement.offsetWidth ) {
+                    oson.fit.vars.currentw = document.documentElement.offsetWidth;
+                    oson.fit.vars.currenth = document.documentElement.offsetHeight;
+                }
+                if (window.innerWidth && window.innerHeight) {
+                    oson.fit.vars.currentw = window.innerWidth;
+                    oson.fit.vars.currenth = window.innerHeight;
+                }
+                if(oson.fit.vars.currentw!=oson.fit.vars.oldw  || oson.fit.vars.currenth!=oson.fit.vars.oldh){
+                    oson.fit.scale();
+                    oson.fit.vars.oldw = oson.fit.vars.currentw;
+                    oson.fit.vars.oldh = oson.fit.vars.currenth;
+                }    
+    }
+}
+oson.fit.interval();
+oson.fit.vars.interval = setInterval("oson.fit.interval()", 1000);
+
+
+/// fullscreen 
+
+oson.fullscreen={
+    vars:{
+        state : 0,
+    },
+    run:function(){
+        var fullehtml = document.getElementsByTagName("body")[0];
+        if (oson.fullscreen.vars.state === 0) {
+            if (fullehtml.requestFullscreen) {
+                fullehtml.requestFullscreen();
+            } else if (fullehtml.mozRequestFullScreen) {
+                fullehtml.mozRequestFullScreen();
+            } else if (fullehtml.webkitRequestFullscreen) {
+                fullehtml.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.cancelFullScreen) {
+                document.cancelFullScreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitCancelFullScreen) {
+                document.webkitCancelFullScreen();
+            }
+        }
+        oson.fit.interval();    
+    }
+}
+document.addEventListener("fullscreenchange", function () {
+    oson.fullscreen.vars.state = (document.fullscreenElement)? 1 : 0;
+}, false);
+document.addEventListener("mozfullscreenchange", function () {
+    oson.fullscreen.vars.state = (document.mozFullScreen)? 1 : 0;
+}, false);
+document.addEventListener("webkitfullscreenchange", function () {
+    oson.fullscreen.vars.state = (document.webkitIsFullScreen)? 1 : 0;
+}, false);
+
+
+//keycontrol 
+
+oson.keymanager = {
+    repeater:function(keys, repeat) {
+        var timers= {};
+        document.onkeydown= function(event) {
+            var key= (event || window.event).keyCode;
+            if (!(key in keys))
+                return true;
+            if (!(key in timers)) {
+                timers[key]= null;
+                keys[key]();
+                if (repeat!==0)
+                    timers[key]= setInterval(keys[key], repeat);
+            };
+            return false;
+        },
+        document.onkeyup= function(event) {
+            var key= (event || window.event).keyCode;
+            if (key in timers) {
+                if (timers[key]!==null)
+                    clearInterval(timers[key]);
+                delete timers[key];
+            };
+        },
+        window.onblur= function() {
+            for (key in timers)
+                if (timers[key]!==null)
+                    clearInterval(timers[key]);
+                timers= {};
+        };
+        return false;
+    },
+    press:function(keys) {
+        var timers= {};
+        document.onkeypress= function(event) {
+            var key= (event || window.event).keyCode;
+            if (!(key in keys))
+                return true;
+            keys[key]();
+            return false;
+        }
+    }
+}
+
+oson.keymanager.repeater({
+    38: function() { pong.fun.playerone.newpos(pong.fun.move.racket.up(pong.vars.playerone.posy, pong.vars.setup.playerspeed));  },
+    40: function() { pong.fun.playerone.newpos(pong.fun.move.racket.down(pong.vars.playerone.posy, pong.vars.setup.playerspeed));  },
+}, 40);
+oson.keymanager.press({
+    80: function() { pong.fun.pausex();},
+    13: function() { pong.fun.pushstart();},
+    70: function() { oson.fullscreen.run();},
+});
+
+</script>
+<script src="http://connect.facebook.net/en_US/all.js">
+</script>
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+     appId: '162677290581068', 
+     status: true, 
+     cookie: true, 
+     xfbml: true
+
+     });
+    
+    //this resizes the the i-frame 
+    //on an interval of 100ms 
+   };
+   (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement(s); js.id = id;
+     js.src = "//connect.facebook.net/en_US/all.js";
+     fjs.parentNode.insertBefore(js, fjs);
+   }(document, 'script', 'facebook-jssdk'));
+function requestCallback(response)
+{
+
+}
+        </script>
+    </body>
+</html>
